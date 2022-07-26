@@ -1,0 +1,47 @@
+SQL server 
+SET NOCOUNT ON;
+
+/*
+Enter your query below.
+Please append a semicolon ";" at the end of the query
+*/
+ 
+With max AS (
+
+SELECT
+      datepart(month,CAST (record_date AS DATETIME) ) AS month_max,
+      MAX(data_value) AS max_value
+FROM   temperature_records
+WHERE  data_type LIKE 'max'
+GROUP BY datepart(month,CAST (record_date AS DATETIME))
+-- ORDER BY datepart(month,record_date)
+),
+min AS(
+        SELECT
+            datepart(month,CAST (record_date AS DATETIME)) AS month_min,
+            MIN(data_value) AS min_value
+FROM    temperature_records
+ WHERE data_type LIKE 'min'
+GROUP BY datepart(month,CAST (record_date AS DATETIME))
+-- ORDER BY datepart(month,record_date)
+),
+  AVG AS(
+      SELECT
+            datepart(month,CAST (record_date AS DATETIME)) AS month_avg,
+            ROUND(AVG(CAST(data_value AS FLOAT)),0) as avg_value
+FROM   temperature_records
+WHERE  data_type LIKE 'avg'
+GROUP BY datepart(month,CAST (record_date AS DATETIME)), data_type
+-- ORDER BY datepart(month,record_date)
+)
+
+SELECT
+      month_max,
+      max_value,
+      min_value,
+    REPLACE (  avg_value,'.0','')
+FROM   max
+JOIN   min ON min.month_min = max.month_max
+JOIN   avg ON avg.month_avg = max.month_max
+
+
